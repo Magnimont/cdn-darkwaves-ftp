@@ -23,12 +23,12 @@ sudo apt install -y python3 python3-pip python3-venv &>/dev/null
 # Create a virtual environment if it doesn't exist
 if [ ! -d "venv" ]; then
     echo "Creating a virtual environment..."
-    python3 -m venv venv &>/dev/null
+    python3 -m venv ftp &>/dev/null
 fi
 
 # Activate the virtual environment
 echo "Activating the virtual environment..."
-source venv/bin/activate
+source ftp/bin/activate
 
 # Install Python dependencies
 echo "Installing Python dependencies..."
