@@ -34,6 +34,7 @@ source venv/bin/activate
 echo "Installing Python dependencies..."
 pip install --upgrade pip &>/dev/null
 pip install -r requirements.txt &>/dev/null
+pip install flask
 
 # Run the Flask application
 echo "Starting the Flask application..."
