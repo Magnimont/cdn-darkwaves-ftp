@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# login to the vps without password prompt
+# login to the VPS without password prompt
 sudo -n true
 if [ $? -ne 0 ]; then
     echo "Passwordless sudo is not configured. Please configure passwordless sudo for the current user."
@@ -15,10 +15,29 @@ git stash &>/dev/null
 echo "Pulling the latest changes from the repository..."
 git pull &>/dev/null
 
+# Ensure Python3, pip, and virtualenv are installed
+echo "Checking for Python3, pip, and virtualenv..."
+sudo apt update &>/dev/null
+sudo apt install -y python3 python3-pip python3-venv &>/dev/null
+
+# Create a virtual environment if it doesn't exist
+if [ ! -d "venv" ]; then
+    echo "Creating a virtual environment..."
+    python3 -m venv venv &>/dev/null
+fi
+
+# Activate the virtual environment
+echo "Activating the virtual environment..."
+source venv/bin/activate
+
 # Install Python dependencies
 echo "Installing Python dependencies..."
+pip install --upgrade pip &>/dev/null
 pip install -r requirements.txt &>/dev/null
 
 # Run the Flask application
 echo "Starting the Flask application..."
 python3 cdn.py
+
+# Deactivate the virtual environment when done
+deactivate
