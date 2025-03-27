@@ -9,4 +9,3 @@ numpy
 matplotlib
 easy_pil
 websockets
-video_detect
