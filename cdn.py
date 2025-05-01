@@ -7,16 +7,8 @@ from flask_compress import Compress
 from flask_cors import CORS  # Import Flask-CORS
 from image_detect import check_image
 from video_detect import check_video
-import matplotlib.font_manager as fm
-from image_gen import gen_image, gen_ProfilePicture
-import requests
-from io import BytesIO
 from werkzeug.datastructures import FileStorage
 import re
-
-# List available fonts
-font_list = fm.findSystemFonts(fontpaths=None, fontext='ttf')
-print(font_list)
 
 # Flask application
 app = Flask(__name__)
@@ -103,64 +95,6 @@ def upload_file():
     collection.insert_one(file_metadata)
     return jsonify(file_metadata)
 
-
-# Handle image and video creation
-@app.route('/create', methods=['POST'])
-def create_media():
-    data = request.form
-    title = data.get('title')
-    description = data.get('description')
-    category = data.get('category')
-    name = data.get('name')
-    file_url = data.get('userimage_url')
-    print({'title': title, 'description': description,
-          'category': category, 'file_url': file_url})
-
-    if not title or not description or not category or not name:
-        return error_handler("Title or Description or Category or Name not provided", 400)
-
-    if file_url:
-        print({file_url})
-        try:
-            response = requests.get(file_url)
-            response.raise_for_status()  # Raise an exception for non-200 status codes
-            file_content = BytesIO(response.content)
-            filename = file_url.split('/')[-1]  # Extract filename from URL
-            print({filename})
-            uploaded_file = FileStorage(file_content, filename=filename)
-
-        except Exception as e:
-            # If there's an error in downloading the image, fall back to generating a profile picture
-            uploaded_file = gen_ProfilePicture(name)
-    else:
-        uploaded_file = gen_ProfilePicture(name)
-
-    # Store file metadata in MongoDB
-    file_id = str(uuid.uuid4())
-
-    # Save the image with the post details
-    output_file_path = os.path.join(UPLOAD_DIRECTORY, file_id + ".jpg")
-    gen_image(title, description, category, name,
-              uploaded_file, output_file_path)
-    image_status = check_image(output_file_path)
-    print({"image_status": image_status})
-    if not image_status:
-        return error_handler("File check error", 404)
-    elif image_status["isNudeContent"]:
-        # Delete the file if it contains nude content
-        os.remove(output_file_path)
-        return error_handler("File contains nude content", 404)
-    else:
-        # Store file metadata in MongoDB if it passes the checks
-        file_metadata = {
-            '_id': file_id,
-            'filename': output_file_path.split('/')[-1],
-            'path': output_file_path,
-            'content_type': 'image',
-            'adult_content': image_status["isAdultContent"]
-        }
-        collection.insert_one(file_metadata)
-        return jsonify(file_metadata)
 
 # Get file path by ID
 @app.route('/files/<file_id>', methods=['GET'])
